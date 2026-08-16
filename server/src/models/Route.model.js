@@ -16,4 +16,6 @@ const routeSchema = new Schema({
 
 routeSchema.index({ origin: 1, destination: 1 }, { unique: true });
 
-export default mongoose.model("Route", routeSchema)
+const Route = mongoose.model("Route", routeSchema)
+
+export default Route;

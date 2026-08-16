@@ -25,4 +25,6 @@ const airportSchema = new Schema({
 
 }, { timestamps: true })
 
-export default mongoose.model("Airport", airportSchema)
+const Airport = mongoose.model("Airport", airportSchema)
+
+export default Airport;

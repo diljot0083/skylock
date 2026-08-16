@@ -25,4 +25,6 @@ const seatSchema = new Schema({
 
 seatSchema.index({ flight: 1, seatNumber: 1 }, { unique: true });
 
-export default mongoose.model("Seat", seatSchema)
+const Seat = mongoose.model("Seat", seatSchema)
+
+export default Seat;

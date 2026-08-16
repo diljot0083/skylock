@@ -26,4 +26,6 @@ const fareClassSchema = new Schema({
 
 })
 
-export default mongoose.model("FareClass", fareClassSchema)
+const FareClass = mongoose.model("FareClass", fareClassSchema)
+
+export default FareClass;

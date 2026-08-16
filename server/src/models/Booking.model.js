@@ -42,4 +42,6 @@ const bookingSchema = new Schema({
 
 bookingSchema.index({ user: 1, createdAt: -1 });
 
-export default mongoose.model("Booking", bookingSchema)
+const Booking = mongoose.model("Booking", bookingSchema)
+
+export default Booking;
