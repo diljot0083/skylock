@@ -4,6 +4,7 @@ const userSchema = new Schema({
     username: {
         type: String,
         required: true,
+        unique: true,
         lowercase: true,
         trim: true,
     },
@@ -19,6 +20,19 @@ const userSchema = new Schema({
         required: true,
         trim: true,
         index: true
+    },
+    password: {
+        type: String,
+        select: false
+    },
+    googleId: {
+        type: String,
+        unique: true,
+        sparse: true
+    },
+    refreshToken: {
+        type: String,
+        select: false
     }
 }, { timestamps: true })
 
