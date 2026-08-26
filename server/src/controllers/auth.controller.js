@@ -1,5 +1,6 @@
 import bcrypt from "bcrypt";
 import crypto from "crypto";
+import jwt from "jsonwebtoken";
 import User from "../models/User.model.js";
 import { generateAccessToken, generateRefreshToken } from "../utils/generateTokens.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -100,4 +101,63 @@ const login = asyncHandler(async (req, res) => {
     });
 });
 
-export { register, login };
+const refreshAccessToken = asyncHandler(async (req, res) => {
+    const incomingRefreshToken = req.cookies?.refreshToken;
+
+    if (!incomingRefreshToken) {
+        return res.status(401).json({ success: false, message: "Refresh token missing" });
+    }
+
+    let decoded;
+    try {
+        decoded = jwt.verify(incomingRefreshToken, process.env.JWT_REFRESH_SECRET);
+    } catch (error) {
+        return res.status(401).json({ success: false, message: "Invalid or expired refresh token" });
+    }
+
+    const user = await User.findById(decoded.id).select("+refreshToken");
+
+    if (!user || !user.refreshToken) {
+        return res.status(401).json({ success: false, message: "Invalid refresh token" });
+    }
+
+    const incomingHashed = hashRefreshToken(incomingRefreshToken);
+
+    if (incomingRefreshToken != user.refreshToken) {
+        return res.status(401).json({ success: false, message: "Refresh token mismatch" });
+    }
+
+    const newAccessToken = generateAccessToken(user._id);
+    const newRefreshToken = generateRefreshToken(user._id);
+
+    user.refreshToken = hashRefreshToken(newRefreshToken);
+    await user.save();
+
+    res.cookie("refreshToken", newRefreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 7 * 24 * 60 * 60 * 1000
+    });
+
+    res.status(200).json({
+        success: true,
+        accessToken: newAccessToken
+    });
+});
+
+const logout = asyncHandler(async (req, res) => {
+    await User.findByIdAndUpdate(req.user._id, {
+        $unset: { refreshToken: 1 }
+    });
+
+    res.clearCookie("refreshToken", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict"
+    });
+
+    res.status(200).json({ success: true, message: "Logged out successfully" });
+});
+
+export { register, login, refreshAccessToken, logout };
