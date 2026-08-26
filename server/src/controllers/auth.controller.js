@@ -160,4 +160,16 @@ const logout = asyncHandler(async (req, res) => {
     res.status(200).json({ success: true, message: "Logged out successfully" });
 });
 
-export { register, login, refreshAccessToken, logout };
+const getCurrentUser = asyncHandler(async (req, res) => {
+    res.status(200).json({
+        success: true,
+        user: {
+            id: req.user._id,
+            username: req.user.username,
+            email: req.user.email,
+            fullName: req.user.fullName
+        }
+    });
+});
+
+export { register, login, refreshAccessToken, logout, getCurrentUser };
