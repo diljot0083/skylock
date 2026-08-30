@@ -172,4 +172,23 @@ const getCurrentUser = asyncHandler(async (req, res) => {
     });
 });
 
-export { register, login, refreshAccessToken, logout, getCurrentUser };
+const googleCallback = asyncHandler(async (req, res) => {
+    const user = req.user;
+
+    const accessToken = generateAccessToken(user._id);
+    const refreshToken = generateRefreshToken(user._id);
+
+    user.refreshToken = hashRefreshToken(refreshToken);
+    await user.save();
+
+    res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 7 * 24 * 60 * 60 * 1000
+    });
+
+    res.redirect(`${process.env.CLIENT_URL}/oauth/callback?accessToken=${accessToken}`);
+});
+
+export { register, login, refreshAccessToken, logout, getCurrentUser, googleCallback };
