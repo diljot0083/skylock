@@ -6,13 +6,16 @@ export default async function seedFlights() {
     try {
         const routes = await Route.find({});
         const fareClasses = await FareClass.find({});
+        const seedAnchorDate = new Date();
 
         const flights = [];
 
         routes.forEach((route, routeIndex) => {
             for (let i = 0; i < 2; i++) {
                 const flightNumber = `SK${100 + routeIndex * 10 + i}`;
-                const departureTime = new Date(Date.now() + (routeIndex + 1) * 86400000 + i * 3 * 3600000);
+                const departureTime = new Date(
+                    seedAnchorDate.getTime() + (routeIndex + 1) * 86400000 + i * 3 * 3600000
+                );
                 const arrivalTime = new Date(departureTime.getTime() + 2 * 3600000);
 
                 const flightFareClasses = fareClasses.map((fc) => ({
@@ -36,6 +39,11 @@ export default async function seedFlights() {
 
         await Flight.insertMany(flights);
         console.log(`Flights successfully seeded (${flights.length} flights)`);
+
+        const earliest = flights[0].departureTime.toISOString();
+        const latest = flights[flights.length - 1].departureTime.toISOString();
+        console.log(`Departure window: ${earliest} → ${latest}`);
+        console.log(`Tip: hit GET /api/flights/debug/window anytime to check this again`);
     } catch (error) {
         console.error("Error seeding flights:", error);
         throw error;

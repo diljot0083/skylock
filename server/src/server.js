@@ -1,4 +1,5 @@
 import "./config/env.js";
+import "./models/index.js";
 import connectDB from "./config/db.js";
 import { app } from "./app.js";
 
