@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.model.js";
 import { generateAccessToken, generateRefreshToken } from "../utils/generateTokens.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { NODE_ENV, CLIENT_URL } from "../config/env.js";
 
 const hashRefreshToken = (token) => {
     return crypto.createHash("sha256").update(token).digest("hex");
@@ -36,9 +37,9 @@ const register = asyncHandler(async (req, res) => {
     user.refreshToken = hashRefreshToken(refreshToken)
     await user.save();
 
-    res.cookie("refreshToken", refreshToken, {
+    res.cookie("refreshToken", newRefreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: NODE_ENV === "production",
         sameSite: "strict",
         maxAge: 7 * 24 * 60 * 60 * 1000
     });
@@ -81,9 +82,9 @@ const login = asyncHandler(async (req, res) => {
     user.refreshToken = hashRefreshToken(refreshToken);
     await user.save();
 
-    res.cookie("refreshToken", refreshToken, {
+    res.cookie("refreshToken", newRefreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: NODE_ENV === "production",
         sameSite: "strict",
         maxAge: 7 * 24 * 60 * 60 * 1000
     });
@@ -123,7 +124,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
     const incomingHashed = hashRefreshToken(incomingRefreshToken);
 
-    if (incomingRefreshToken != user.refreshToken) {
+    if (incomingHashed !== user.refreshToken) {
         return res.status(401).json({ success: false, message: "Refresh token mismatch" });
     }
 
@@ -135,7 +136,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
     res.cookie("refreshToken", newRefreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: NODE_ENV === "production",
         sameSite: "strict",
         maxAge: 7 * 24 * 60 * 60 * 1000
     });
@@ -153,7 +154,7 @@ const logout = asyncHandler(async (req, res) => {
 
     res.clearCookie("refreshToken", {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: NODE_ENV === "production",
         sameSite: "strict"
     });
 
@@ -183,12 +184,12 @@ const googleCallback = asyncHandler(async (req, res) => {
 
     res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: NODE_ENV === "production",
         sameSite: "strict",
         maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
-    res.redirect(`${process.env.CLIENT_URL}/oauth/callback?accessToken=${accessToken}`);
+    res.redirect(`${CLIENT_URL}/oauth/callback?accessToken=${accessToken}`);
 });
 
 export { register, login, refreshAccessToken, logout, getCurrentUser, googleCallback };

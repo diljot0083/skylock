@@ -1,6 +1,7 @@
 import jwt from "jsonwebtoken";
 import User from "../models/User.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { JWT_ACCESS_SECRET } from "../config/env.js";
 
 export const verifyJWT = asyncHandler(async (req, res, next) => {
     const authHeader = req.headers.authorization;
@@ -13,7 +14,7 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
 
     let decoded;
     try {
-        decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET);
+        decoded = jwt.verify(token, JWT_ACCESS_SECRET);
     } catch (error) {
         return res.status(401).json({ success: false, message: "Invalid or expired access token" });
     }
