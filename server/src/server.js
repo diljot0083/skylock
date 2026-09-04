@@ -1,7 +1,7 @@
 import { PORT } from "./config/env.js";
 import "./models/index.js";
 import connectDB from "./config/db.js";
-import redisClient, { connectRedis } from "./config/redis.js";
+import { connectRedis } from "./config/redis.js";
 import { app } from "./app.js";
 
 connectDB()
