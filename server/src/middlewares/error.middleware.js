@@ -1,11 +1,18 @@
 export const errorMiddleware = (err, req, res, next) => {
     console.error(err);
 
-    const statusCode = err.statusCode || 500;
-    const message = err.message || "Internal server error";
+    let statusCode = err.statusCode || 500;
+    let message = err.message || "Internal server error";
 
-    res.status(statusCode).json({
-        success: false,
-        message
-    });
+    if (err.name === "CastError") {
+        statusCode = 400;
+        message = `Invalid ${err.path}: ${err.value}`;
+    }
+
+    if (err.name === "ValidationError") {
+        statusCode = 400;
+        message = Object.values(err.errors).map((e) => e.message).join(", ");
+    }
+
+    res.status(statusCode).json({ success: false, message });
 };
