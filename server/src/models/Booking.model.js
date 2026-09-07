@@ -36,6 +36,7 @@ const bookingSchema = new Schema({
     confirmationCode: {
         type: String,
         required: true,
+        unique: true
     }
 
 }, { timestamps: true })
