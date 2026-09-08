@@ -37,7 +37,7 @@ const register = asyncHandler(async (req, res) => {
     user.refreshToken = hashRefreshToken(refreshToken)
     await user.save();
 
-    res.cookie("refreshToken", newRefreshToken, {
+    res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
         secure: NODE_ENV === "production",
         sameSite: "strict",
@@ -82,7 +82,7 @@ const login = asyncHandler(async (req, res) => {
     user.refreshToken = hashRefreshToken(refreshToken);
     await user.save();
 
-    res.cookie("refreshToken", newRefreshToken, {
+    res.cookie("refreshToken", refreshToken, {
         httpOnly: true,
         secure: NODE_ENV === "production",
         sameSite: "strict",
