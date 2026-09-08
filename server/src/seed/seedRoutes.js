@@ -18,10 +18,16 @@ export default async function seedRoutes() {
 
         const byCode = Object.fromEntries(airports.map(airport => [airport.code, airport._id]));
 
-        const routes = routePairs.map(([originCode, destinationCode]) => ({
-            origin: byCode[originCode],
-            destination: byCode[destinationCode]
-        }))
+        const routes = routePairs.map(([originCode, destinationCode]) => {
+            const origin = byCode[originCode];
+            const destination = byCode[destinationCode];
+
+            if (!origin || !destination) {
+                throw new Error(`Missing airport for route ${originCode} -> ${destinationCode}`);
+            }
+
+            return { origin, destination };
+        });
 
         await Route.deleteMany({});
         console.log("Route collection cleared")

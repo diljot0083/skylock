@@ -20,12 +20,11 @@ export default async function seedSeats() {
                 const fareCode = row <= 4 ? "J" : row <= 10 ? "W" : "Y";
 
                 columns.forEach((col) => {
-                    seats.push({
-                        flight: flight._id,
-                        seatNumber: `${row}${col}`,
-                        fareClass: fareClassByCode[fareCode],
-                        status: "available"
-                    });
+                    const fareClass = fareClassByCode[fareCode];
+                    if (!fareClass) {
+                        throw new Error(`Missing fare class for code "${fareCode}"`);
+                    }
+                    seats.push({ flight: flight._id, seatNumber: `${row}${col}`, fareClass, status: "available" });
                 });
             }
         });

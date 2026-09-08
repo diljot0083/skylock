@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import User from "../models/User.model.js";
 import { generateAccessToken, generateRefreshToken } from "../utils/generateTokens.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
-import { NODE_ENV, CLIENT_URL } from "../config/env.js";
+import { NODE_ENV, CLIENT_URL, JWT_REFRESH_SECRET } from "../config/env.js";
 
 const hashRefreshToken = (token) => {
     return crypto.createHash("sha256").update(token).digest("hex");
@@ -111,7 +111,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
     let decoded;
     try {
-        decoded = jwt.verify(incomingRefreshToken, process.env.JWT_REFRESH_SECRET);
+        decoded = jwt.verify(incomingRefreshToken, JWT_REFRESH_SECRET);
     } catch (error) {
         return res.status(401).json({ success: false, message: "Invalid or expired refresh token" });
     }

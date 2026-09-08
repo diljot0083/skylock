@@ -59,7 +59,9 @@ const searchFlights = asyncHandler(async (req, res) => {
 });
 
 const getUpcomingFlightWindow = asyncHandler(async (req, res) => {
-    const earliest = await Flight.findOne().sort({ departureTime: 1 });
+    const earliest = await Flight.findOne()
+        .sort({ departureTime: 1 })
+        .populate({ path: "route", populate: ["origin", "destination"] });
     const latest = await Flight.findOne().sort({ departureTime: -1 });
 
     if (!earliest || !latest) {
@@ -75,7 +77,7 @@ const getUpcomingFlightWindow = asyncHandler(async (req, res) => {
         success: true,
         earliestDeparture: earliest.departureTime,
         latestDeparture: latest.departureTime,
-        sampleQuery: `/api/flights/search?origin=DEL&destination=BOM&date=${earliest.departureTime.toISOString().split("T")[0]}`
+        sampleQuery: `/api/flights/search?origin=${earliest.route.origin.code}&destination=${earliest.route.destination.code}&date=${earliest.departureTime.toISOString().split("T")[0]}`
     });
 });
 
