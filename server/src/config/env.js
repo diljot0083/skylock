@@ -26,3 +26,10 @@ export const GOOGLE_REDIRECT_URI = required("GOOGLE_REDIRECT_URI");
 
 export const CORS_ORIGIN = required("CORS_ORIGIN");
 export const CLIENT_URL = required("CLIENT_URL");
+
+export const PAYMENT_PROVIDER = process.env.PAYMENT_PROVIDER || "mock";
+export const MOCK_PAYMENT_SECRET = required("MOCK_PAYMENT_SECRET");
+
+export const RAZORPAY_KEY_ID = process.env.RAZORPAY_KEY_ID;
+export const RAZORPAY_KEY_SECRET = process.env.RAZORPAY_KEY_SECRET;
+export const RAZORPAY_WEBHOOK_SECRET = process.env.RAZORPAY_WEBHOOK_SECRET;

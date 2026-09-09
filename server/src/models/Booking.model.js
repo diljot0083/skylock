@@ -24,10 +24,21 @@ const bookingSchema = new Schema({
     },
     paymentStatus: {
         type: String,
-        default: "unpaid"
+        default: "unpaid",
+        enum: ["unpaid", "paid"]
     },
     paymentId: {
         type: String
+    },
+    paymentOrderId: {
+        type: String,
+        index: true
+    },
+    paymentProvider: {
+        type: String
+    },
+    paymentExpiresAt: {
+        type: Date
     },
     totalPrice: {
         type: Number,
@@ -42,6 +53,7 @@ const bookingSchema = new Schema({
 }, { timestamps: true })
 
 bookingSchema.index({ user: 1, createdAt: -1 });
+bookingSchema.index({ status: 1, paymentStatus: 1, paymentExpiresAt: 1 });
 
 const Booking = mongoose.model("Booking", bookingSchema)
 
