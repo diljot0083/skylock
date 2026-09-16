@@ -5,6 +5,8 @@ import authRouter from './routes/auth.routes.js';
 import passport from "./config/passport.js";
 import flightsRouter from './routes/flights.routes.js';
 import bookingRouter from './routes/bookings.routes.js';
+import mockPaymentRouter from "./routes/mockPayment.routes.js";
+import paymentRouter from "./routes/payment.routes.js"
 import { errorMiddleware } from "./middlewares/error.middleware.js";
 import { CORS_ORIGIN } from "./config/env.js";
 
@@ -15,12 +17,15 @@ app.use(cors({
     credentials: true
 }))
 
+app.use("/api/payments", mockPaymentRouter);
+
 app.use(express.json())
 app.use(cookieParser())
 app.use(passport.initialize())
 app.use("/api/flights", flightsRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/bookings", bookingRouter);
+app.use("/api/bookings", paymentRouter);
 
 app.get("/", (req, res) => {
     res.status(200).json({

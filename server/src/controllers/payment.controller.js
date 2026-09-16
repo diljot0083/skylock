@@ -1,6 +1,6 @@
 import paymentEngine from "../services/payment/payment.factory.js";
 import { applyPaymentEvent } from "../services/payment/applyPaymentEvent.js";
-import Booking from "../models/Booking.js";
+import Booking from "../models/Booking.model.js";
 
 export const initiatePayment = async (req, res, next) => {
     try {

@@ -1,4 +1,5 @@
 import { bookSeats } from "../services/booking.service.js";
+import paymentEngine from "../services/payment/payment.factory.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 export const createBooking = asyncHandler(async (req, res) => {
@@ -21,6 +22,19 @@ export const createBooking = asyncHandler(async (req, res) => {
     }
 
     const booking = await bookSeats({ userId, flightId, seatIds: uniqueSeatIds });
+
+    const order = await paymentEngine.createOrder({
+        amount: booking.totalPrice,
+        receipt: booking._id.toString(),
+        notes: {
+            bookingId: booking._id.toString()
+        }
+    });
+
+    booking.paymentOrderId = order.orderId;
+    booking.paymentProvider = paymentEngine.name;
+
+    await booking.save();
 
     res.status(201).json({
         success: true,

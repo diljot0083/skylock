@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
-import Booking from "../../models/Booking.js";
-import Seat from "../../models/Seat.js";
+import Booking from "../../models/Booking.model.js";
+import Seat from "../../models/Seat.model.js";
 
 export async function applyPaymentEvent({ type, orderId, paymentId }) {
     if (type === "captured") {

@@ -61,6 +61,7 @@ export const bookSeats = async ({ userId, flightId, seatIds }) => {
                     paymentStatus: "unpaid",
                     totalPrice,
                     confirmationCode,
+                    paymentExpiresAt: new Date(Date.now() + 15 * 60 * 1000),
                 },
             ],
             { session }
