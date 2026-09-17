@@ -45,11 +45,28 @@ export const mockPaymentEngine = {
 
     buildSimulatedWebhookPayload({ orderId, type = "captured" }) {
         const paymentId = `pay_mock_${crypto.randomBytes(8).toString("hex")}`;
+
         const body = {
-            event: type === "captured" ? "payment.captured" : "payment.failed",
-            payload: { payment: { entity: { id: paymentId, order_id: orderId, status: type } } },
+            event: type === "captured"
+                ? "payment.captured"
+                : "payment.failed",
+
+            payload: {
+                payment: {
+                    entity: {
+                        id: paymentId,
+                        order_id: orderId,
+                        status: type
+                    }
+                }
+            }
         };
+
         const raw = Buffer.from(JSON.stringify(body));
-        return { body, signature: sign(raw) };
+
+        return {
+            body: raw.toString("utf8"),
+            signature: sign(raw)
+        };
     },
 };
