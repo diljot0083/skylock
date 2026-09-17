@@ -28,14 +28,19 @@ export const mockPaymentEngine = {
         return safeHmacCompare(`${orderId}|${paymentId}`, signature);
     },
 
-    verifyWebhookSignature(rawBody, signatureHeader) {
-        return safeHmacCompare(rawBody, signatureHeader);
-    },
+    verifyWebhookEvent(rawBody, signatureHeader) {
+        let event;
+        try {
+            event = JSON.parse(rawBody.toString("utf8"));
+        } catch {
+            return null;
+        }
+        const payment = event?.payload?.payment?.entity;
+        if (!payment) return null;
 
-    parseWebhookEvent(rawBody) {
-        const event = JSON.parse(rawBody.toString("utf8"));
-        if (!["payment.captured", "payment.failed"].includes(event.event)) return null;
-        const payment = event.payload.payment.entity;
+        const canonical = `${payment.order_id}|${payment.status}`;
+        if (!safeHmacCompare(canonical, signatureHeader)) return null;
+
         return {
             type: event.event === "payment.captured" ? "captured" : "failed",
             orderId: payment.order_id,
@@ -45,28 +50,11 @@ export const mockPaymentEngine = {
 
     buildSimulatedWebhookPayload({ orderId, type = "captured" }) {
         const paymentId = `pay_mock_${crypto.randomBytes(8).toString("hex")}`;
-
         const body = {
-            event: type === "captured"
-                ? "payment.captured"
-                : "payment.failed",
-
-            payload: {
-                payment: {
-                    entity: {
-                        id: paymentId,
-                        order_id: orderId,
-                        status: type
-                    }
-                }
-            }
+            event: type === "captured" ? "payment.captured" : "payment.failed",
+            payload: { payment: { entity: { id: paymentId, order_id: orderId, status: type } } },
         };
-
-        const raw = Buffer.from(JSON.stringify(body));
-
-        return {
-            body: raw.toString("utf8"),
-            signature: sign(raw)
-        };
+        const signature = sign(`${orderId}|${type}`); // matches verifyWebhookEvent's canonical string
+        return { body, signature };
     },
 };

@@ -7,13 +7,13 @@ export const handleMockWebhook = async (req, res, next) => {
         if (PAYMENT_PROVIDER !== "mock") { const err = new Error("Not found"); err.statusCode = 404; throw err; }
 
         const signature = req.headers["x-mock-signature"];
-        if (!mockPaymentEngine.verifyWebhookSignature(req.body, signature)) {
-            return res.status(400).json({ message: "Invalid mock signature" });
+        const parsed = mockPaymentEngine.verifyWebhookEvent(req.body, signature);
+
+        if (!parsed) {
+            return res.status(400).json({ message: "Invalid mock signature or payload" });
         }
 
-        const parsed = mockPaymentEngine.parseWebhookEvent(req.body);
-        if (parsed) await applyPaymentEvent(parsed);
-
+        await applyPaymentEvent(parsed);
         res.status(200).json({ received: true });
     } catch (err) { next(err); }
 };
