@@ -3,10 +3,14 @@ import crypto from "crypto";
 import Seat from "../models/Seat.model.js";
 import Booking from "../models/Booking.model.js";
 import { acquireSeatLocks, releaseSeatLocks } from "../locks/seatLock.js";
+import { emitSeatUpdate } from "../config/socket.js";
 
 export const bookSeats = async ({ userId, flightId, seatIds }) => {
 
     const locks = await acquireSeatLocks(seatIds, userId);
+
+    emitSeatUpdate(flightId, { seatIds, status: "locked" });
+
     const session = await mongoose.startSession();
 
     try {
@@ -68,9 +72,15 @@ export const bookSeats = async ({ userId, flightId, seatIds }) => {
         );
 
         await session.commitTransaction();
+
+        emitSeatUpdate(flightId, { seatIds, status: "booked" });
+
         return booking;
     } catch (error) {
         await session.abortTransaction();
+
+        emitSeatUpdate(flightId, { seatIds, status: "available" });
+
         throw error;
     } finally {
         session.endSession();
