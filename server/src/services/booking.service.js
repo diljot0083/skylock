@@ -79,7 +79,27 @@ export const bookSeats = async ({ userId, flightId, seatIds }) => {
     } catch (error) {
         await session.abortTransaction();
 
-        emitSeatUpdate(flightId, { seatIds, status: "available" });
+        try {
+            const current = await Seat.find({ _id: { $in: seatIds }, flight: flightId })
+                .select("_id status")
+                .lean();
+
+            const available = current
+                .filter((s) => s.status === "available")
+                .map((s) => s._id.toString());
+            const booked = current
+                .filter((s) => s.status === "booked")
+                .map((s) => s._id.toString());
+
+            if (available.length) {
+                emitSeatUpdate(flightId, { seatIds: available, status: "available" });
+            }
+            if (booked.length) {
+                emitSeatUpdate(flightId, { seatIds: booked, status: "booked" });
+            }
+        } catch (syncError) {
+            console.error("Seat status re-sync failed:", syncError.message);
+        }
 
         throw error;
     } finally {
