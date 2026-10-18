@@ -3,7 +3,7 @@ import paymentEngine from "../services/payment/payment.factory.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 export const createBooking = asyncHandler(async (req, res) => {
-    const { flightId, seatIds } = req.body;
+    const { flightId, seatIds } = req.body ?? {};
     const userId = req.user._id;
 
     if (!flightId || !Array.isArray(seatIds) || seatIds.length === 0) {

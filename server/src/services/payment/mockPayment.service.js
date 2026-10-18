@@ -37,12 +37,13 @@ export const mockPaymentEngine = {
         }
         const payment = event?.payload?.payment?.entity;
         if (!payment) return null;
+        if (payment.status !== "captured" && payment.status !== "failed") return null;
 
         const canonical = `${payment.order_id}|${payment.status}`;
         if (!safeHmacCompare(canonical, signatureHeader)) return null;
 
         return {
-            type: event.event === "payment.captured" ? "captured" : "failed",
+            type: payment.status,
             orderId: payment.order_id,
             paymentId: payment.id,
         };

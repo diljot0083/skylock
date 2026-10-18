@@ -1,5 +1,6 @@
 import { Router } from "express";
 import passport from "passport";
+import { CLIENT_URL } from "../config/env.js";
 import {
     register,
     login,
@@ -25,7 +26,7 @@ router.get(
 
 router.get(
     "/google/callback",
-    passport.authenticate("google", { session: false, failureRedirect: "/login" }),
+    passport.authenticate("google", { session: false, failureRedirect: `${CLIENT_URL}/login` }),
     googleCallback
 );
 

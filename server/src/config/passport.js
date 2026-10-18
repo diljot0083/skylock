@@ -19,6 +19,7 @@ passport.use(
                 }
 
                 const email = profile.emails?.[0]?.value;
+                if (!email) return done(new Error("Google account has no email address"), null);
                 user = await User.findOne({ email });
 
                 if (user) {

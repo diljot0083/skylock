@@ -40,7 +40,7 @@ export const initiatePayment = async (req, res, next) => {
 export const verifyPayment = async (req, res, next) => {
     try {
         const { bookingId } = req.params;
-        const { orderId, paymentId, signature } = req.body;
+        const { orderId, paymentId, signature } = req.body ?? {};
 
         if (!orderId || !paymentId || !signature) {
             const err = new Error("Missing payment verification fields");
@@ -53,7 +53,7 @@ export const verifyPayment = async (req, res, next) => {
             throw err;
         }
 
-        const booking = await Booking.findOne({ _id: bookingId, paymentOrderId: orderId });
+        const booking = await Booking.findOne({ _id: bookingId, paymentOrderId: orderId, user: req.user._id });
         if (!booking) {
             const err = new Error("Booking not found for this order");
             err.statusCode = 404;
