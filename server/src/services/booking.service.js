@@ -6,14 +6,13 @@ import { acquireSeatLocks, releaseSeatLocks } from "../locks/seatLock.js";
 import { emitSeatUpdate } from "../config/socket.js";
 
 export const bookSeats = async ({ userId, flightId, seatIds }) => {
-
     const locks = await acquireSeatLocks(seatIds, userId);
-
-    emitSeatUpdate(flightId, { seatIds, status: "locked" });
-
-    const session = await mongoose.startSession();
+    let session;
 
     try {
+        emitSeatUpdate(flightId, { seatIds, status: "locked" });
+
+        session = await mongoose.startSession();
         session.startTransaction();
 
         const seats = await Seat.find({ _id: { $in: seatIds } })
@@ -77,33 +76,29 @@ export const bookSeats = async ({ userId, flightId, seatIds }) => {
 
         return booking;
     } catch (error) {
-        await session.abortTransaction();
+        try {
+            if (session?.inTransaction()) await session.abortTransaction();
+        } catch (abortError) {
+            console.error("Transaction abort failed:", abortError.message);
+        }
 
         try {
             const current = await Seat.find({ _id: { $in: seatIds }, flight: flightId })
                 .select("_id status")
                 .lean();
 
-            const available = current
-                .filter((s) => s.status === "available")
-                .map((s) => s._id.toString());
-            const booked = current
-                .filter((s) => s.status === "booked")
-                .map((s) => s._id.toString());
+            const available = current.filter((s) => s.status === "available").map((s) => s._id.toString());
+            const booked = current.filter((s) => s.status === "booked").map((s) => s._id.toString());
 
-            if (available.length) {
-                emitSeatUpdate(flightId, { seatIds: available, status: "available" });
-            }
-            if (booked.length) {
-                emitSeatUpdate(flightId, { seatIds: booked, status: "booked" });
-            }
+            if (available.length) emitSeatUpdate(flightId, { seatIds: available, status: "available" });
+            if (booked.length) emitSeatUpdate(flightId, { seatIds: booked, status: "booked" });
         } catch (syncError) {
             console.error("Seat status re-sync failed:", syncError.message);
         }
 
         throw error;
     } finally {
-        session.endSession();
+        await session?.endSession();
         await releaseSeatLocks(locks);
     }
 };

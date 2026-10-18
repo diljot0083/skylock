@@ -3,6 +3,7 @@ import Route from "../models/Route.model.js";
 import Airport from "../models/Airport.model.js";
 import Seat from "../models/Seat.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { getHeldSeatIds } from "../locks/seatLock.js";
 
 const searchFlights = asyncHandler(async (req, res) => {
     const { origin, destination, date } = req.query;
@@ -110,15 +111,24 @@ const getFlightSeats = asyncHandler(async (req, res) => {
         return res.status(404).json({ success: false, message: "Flight not found" });
     }
 
-    const seats = await Seat.find({ flight: id })
-        .populate("fareClass")
-        .sort({ seatNumber: 1 });
+    const seats = await Seat.find({ flight: id }).populate("fareClass").lean();
+
+    let held = new Set();
+    try {
+        held = await getHeldSeatIds(seats.filter((s) => s.status === "available").map((s) => s._id));
+    } catch (error) {
+        console.error("[seats] lock lookup failed:", error.message);
+    }
+
+    const result = seats
+        .map((s) => (held.has(String(s._id)) ? { ...s, status: "locked" } : s))
+        .sort((a, b) => parseInt(a.seatNumber) - parseInt(b.seatNumber) || a.seatNumber.localeCompare(b.seatNumber));
 
     res.status(200).json({
         success: true,
         flightId: id,
-        count: seats.length,
-        seats
+        count: result.length,
+        seats: result
     });
 });
 

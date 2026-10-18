@@ -30,21 +30,31 @@ export const releaseSeatLock = async (seatId, token) => {
 export const acquireSeatLocks = async (seatIds, userId) => {
     const acquired = new Map();
 
-    for (const seatId of seatIds) {
-        const token = await acquireSeatLock(seatId, userId);
+    try {
+        for (const seatId of seatIds) {
+            const token = await acquireSeatLock(seatId, userId);
 
-        if (!token) {
-            await releaseSeatLocks(acquired);
-            const error = new Error(`Seat ${seatId} is currently held by another user`);
-            error.statusCode = 409;
-            error.conflictSeatId = seatId;
-            throw error;
+            if (!token) {
+                const error = new Error(`Seat ${seatId} is currently held by another user`);
+                error.statusCode = 409;
+                error.conflictSeatId = seatId;
+                throw error;
+            }
+
+            acquired.set(seatId, token);
         }
-
-        acquired.set(seatId, token);
+    } catch (error) {
+        await releaseSeatLocks(acquired);
+        throw error;
     }
 
     return acquired;
+};
+
+export const getHeldSeatIds = async (seatIds) => {
+    if (!seatIds.length) return new Set();
+    const values = await redisClient.mget(seatIds.map(lockKey));
+    return new Set(seatIds.filter((_, i) => values[i]).map(String));
 };
 
 export const releaseSeatLocks = async (locks) => {
