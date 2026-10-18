@@ -14,12 +14,12 @@ function safeHmacCompare(message, signature) {
 export const mockPaymentEngine = {
     name: "mock",
 
-    async createOrder({ amount }) {
+    async createOrder({ amount, currency = "INR" }) {
         const orderId = `order_mock_${crypto.randomBytes(8).toString("hex")}`;
         return {
             orderId,
             amount: Math.round(amount * 100),
-            currency: "INR",
+            currency,
             publicKey: "mock_public_key",
         };
     },

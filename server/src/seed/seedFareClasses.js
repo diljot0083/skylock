@@ -5,8 +5,8 @@ const fareClasses = [
         name: "Economy",
         code: "Y",
         pricing: {
-            basePrice: 100,
-            currency: "USD"
+            basePrice: 5000,
+            currency: "INR"
         },
         priceModifiers: {
             priceMultiplier: 1.0,
@@ -18,8 +18,8 @@ const fareClasses = [
         name: "Premium Economy",
         code: "W",
         pricing: {
-            basePrice: 100,
-            currency: "USD"
+            basePrice: 5000,
+            currency: "INR"
         },
         priceModifiers: {
             priceMultiplier: 1.5,
@@ -31,8 +31,8 @@ const fareClasses = [
         name: "Business",
         code: "J",
         pricing: {
-            basePrice: 100,
-            currency: "USD"
+            basePrice: 5000,
+            currency: "INR"
         },
         priceModifiers: {
             priceMultiplier: 2.5,

@@ -13,7 +13,7 @@ const fareClassSchema = new Schema({
     },
     pricing: {
         basePrice: { type: Number, required: true },
-        currency: { type: String, default: 'USD' }
+        currency: { type: String, default: 'INR' }
     },
     priceModifiers: {
         priceMultiplier: { type: Number, default: 1.0 },

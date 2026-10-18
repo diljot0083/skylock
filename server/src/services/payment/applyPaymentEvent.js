@@ -6,7 +6,7 @@ import { emitSeatUpdate } from "../../config/socket.js";
 export async function applyPaymentEvent({ type, orderId, paymentId }) {
     if (type === "captured") {
         await Booking.findOneAndUpdate(
-            { paymentOrderId: orderId, paymentStatus: { $ne: "paid" } },
+            { paymentOrderId: orderId, status: "Pending", paymentStatus: { $ne: "paid" } },
             { $set: { status: "Confirmed", paymentStatus: "paid", paymentId } }
         );
         return;
