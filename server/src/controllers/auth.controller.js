@@ -6,12 +6,20 @@ import { generateAccessToken, generateRefreshToken } from "../utils/generateToke
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { NODE_ENV, CLIENT_URL, JWT_REFRESH_SECRET } from "../config/env.js";
 
+const REFRESH_COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
+const isProd = NODE_ENV === "production";
+const refreshCookieOptions = {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? "none" : "lax",
+};
+
 const hashRefreshToken = (token) => {
     return crypto.createHash("sha256").update(token).digest("hex");
 };
 
 const register = asyncHandler(async (req, res) => {
-    const { username, email, password, fullName } = req.body;
+    const { username, email, password, fullName } = req.body ?? {};
 
     if (!username || !email || !password || !fullName) {
         return res.status(400).json({ success: false, message: "All fields are required" });
@@ -37,12 +45,11 @@ const register = asyncHandler(async (req, res) => {
     user.refreshToken = hashRefreshToken(refreshToken)
     await user.save();
 
-    res.cookie("refreshToken", refreshToken, {
-        httpOnly: true,
-        secure: NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 7 * 24 * 60 * 60 * 1000
-    });
+    res.cookie("refreshToken", refreshToken,
+        {
+            ...refreshCookieOptions,
+            maxAge: REFRESH_COOKIE_MAX_AGE
+        });
 
     res.status(201).json({
         success: true,
@@ -58,10 +65,10 @@ const register = asyncHandler(async (req, res) => {
 });
 
 const login = asyncHandler(async (req, res) => {
-    const { email, password } = req.body;
+    const { email, password } = req.body ?? {};
 
     if (!email || !password) {
-        res.status(400).json({ success: false, message: "Email and password are required" });
+        return res.status(400).json({ success: false, message: "Email and password are required" });
     }
 
     const user = await User.findOne({ email }).select("+password");
@@ -82,12 +89,11 @@ const login = asyncHandler(async (req, res) => {
     user.refreshToken = hashRefreshToken(refreshToken);
     await user.save();
 
-    res.cookie("refreshToken", refreshToken, {
-        httpOnly: true,
-        secure: NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 7 * 24 * 60 * 60 * 1000
-    });
+    res.cookie("refreshToken", refreshToken,
+        {
+            ...refreshCookieOptions,
+            maxAge: REFRESH_COOKIE_MAX_AGE
+        });
 
     res.status(200).json({
         success: true,
@@ -134,12 +140,11 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     user.refreshToken = hashRefreshToken(newRefreshToken);
     await user.save();
 
-    res.cookie("refreshToken", newRefreshToken, {
-        httpOnly: true,
-        secure: NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 7 * 24 * 60 * 60 * 1000
-    });
+    res.cookie("refreshToken", newRefreshToken,
+        {
+            ...refreshCookieOptions,
+            maxAge: REFRESH_COOKIE_MAX_AGE
+        });
 
     res.status(200).json({
         success: true,
@@ -152,11 +157,7 @@ const logout = asyncHandler(async (req, res) => {
         $unset: { refreshToken: 1 }
     });
 
-    res.clearCookie("refreshToken", {
-        httpOnly: true,
-        secure: NODE_ENV === "production",
-        sameSite: "strict"
-    });
+    res.clearCookie("refreshToken", refreshCookieOptions);
 
     res.status(200).json({ success: true, message: "Logged out successfully" });
 });
@@ -182,12 +183,11 @@ const googleCallback = asyncHandler(async (req, res) => {
     user.refreshToken = hashRefreshToken(refreshToken);
     await user.save();
 
-    res.cookie("refreshToken", refreshToken, {
-        httpOnly: true,
-        secure: NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: 7 * 24 * 60 * 60 * 1000
-    });
+    res.cookie("refreshToken", refreshToken,
+        {
+            ...refreshCookieOptions,
+            maxAge: REFRESH_COOKIE_MAX_AGE
+        });
 
     res.redirect(`${CLIENT_URL}/oauth/callback?accessToken=${accessToken}`);
 });

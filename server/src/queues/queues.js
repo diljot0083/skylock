@@ -1,5 +1,5 @@
 import { Queue } from "bullmq";
-import { QUEUE_NAMES, createBullConnection, defaultJobOptions } from "../config/queue";
+import { QUEUE_NAMES, createBullConnection, defaultJobOptions } from "../config/queue.js";
 
 let notificationsQueue = null;
 let expiryQueue = null;
