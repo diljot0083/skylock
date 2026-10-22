@@ -9,7 +9,7 @@ export const processNotification = async (job) => {
                 "user",
                 "email fullName"
             );
-            if (!Booking) {
+            if (!booking) {
                 throw new UnrecoverableError(`Booking ${job.data.bookingId} not found`);
             }
             if (booking.status !== "Confirmed") return;
