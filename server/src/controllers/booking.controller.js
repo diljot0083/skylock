@@ -1,5 +1,6 @@
 import { bookSeats } from "../services/booking.service.js";
 import paymentEngine from "../services/payment/payment.factory.js";
+import { scheduleBookingExpiry } from "../queues/queues.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 export const createBooking = asyncHandler(async (req, res) => {
@@ -22,6 +23,12 @@ export const createBooking = asyncHandler(async (req, res) => {
     }
 
     const booking = await bookSeats({ userId, flightId, seatIds: uniqueSeatIds });
+
+    try {
+        await scheduleBookingExpiry(booking._id, booking.paymentExpiresAt);
+    } catch (err) {
+        console.error("[queue] expiry scheduling failed:", err.message);
+    }
 
     const order = await paymentEngine.createOrder({
         amount: booking.totalPrice,
